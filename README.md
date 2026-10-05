@@ -1,0 +1,17 @@
+# kskills
+
+Agent skills in the open Agent Skills format (`SKILL.md` plus `scripts/`).
+
+| Skill | What it does |
+|---|---|
+| `vid/` | Narrated mp4 of three kinds: explainer, tutorial (records a real web app), marketing. An Opus agent writes it, xAI voices it, Playwright records, ffmpeg muxes |
+| `pstack/` | Claude Code port of [cursor/plugins/pstack](https://github.com/cursor/plugins/tree/main/pstack) (MIT, by Lauren Tan). See `pstack/README.md` |
+
+## Install
+
+```bash
+git clone https://github.com/chillerno1/kskills.git ~/Projects/kskills
+ln -s ~/Projects/kskills/vid ~/.claude/skills/vid
+```
+
+`vid` needs a one-off `npm i && npx playwright install chromium-headless-shell` in `vid/scripts/`, plus `ffmpeg` and an `XAI_API_KEY`. pstack install is in `pstack/README.md`.

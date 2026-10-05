@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Explainer</title>
+<style>
+  /* ponytail: one stylesheet, one dark look. Each scene is a <section>; only .active is shown. */
+  html, body { margin: 0; width: 1280px; height: 720px; overflow: hidden; background: #0b0d14; color: #f2f2f5;
+    font-family: -apple-system, "Inter", "Segoe UI", sans-serif; }
+  section { position: absolute; inset: 0; display: none; padding: 80px; box-sizing: border-box;
+    flex-direction: column; justify-content: center; gap: 24px; opacity: 0; transition: opacity .5s ease; }
+  section.active { display: flex; opacity: 1; }
+  section.leaving { display: flex; opacity: 0; pointer-events: none; }
+  h1 { font-size: 72px; line-height: 1.05; margin: 0; letter-spacing: -0.02em; }
+  h2 { font-size: 44px; line-height: 1.15; margin: 0; font-weight: 500; }
+  p  { font-size: 30px; line-height: 1.4; margin: 0; color: #b8bcc8; max-width: 900px; }
+  .accent { color: #ffb347; }
+  .row { display: flex; gap: 32px; align-items: center; }
+  .card { background: #161a26; border: 1px solid #2a2f3f; border-radius: 16px; padding: 28px 32px; font-size: 28px; }
+  svg { overflow: visible; }
+
+  /* Animations restart every time a section becomes .active (see go()). */
+  .active .up  { animation: up .7s cubic-bezier(.2,.8,.2,1) both; }
+  .active .in  { animation: fade .6s ease both; }
+  .active .pop { animation: pop .5s cubic-bezier(.2,.8,.2,1) both; }
+  .d1 { animation-delay: .25s !important; } .d2 { animation-delay: .5s !important; }
+  .d3 { animation-delay: .75s !important; } .d4 { animation-delay: 1s !important; }
+  .d5 { animation-delay: 1.5s !important; } .d6 { animation-delay: 2s !important; }
+  @keyframes up   { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes pop  { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: none; } }
+  .active .draw { stroke-dasharray: 4000; stroke-dashoffset: 4000; animation: draw 1.6s ease-out forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  .float { animation: float 3s ease-in-out infinite; }
+  @keyframes float { 50% { transform: translateY(-12px); } }
+</style>
+</head>
+<body>
+
+<!-- Narration lives in data-say. One idea per scene, 2 to 3 sentences each. -->
+<section data-say="Shazam can name a song from a few seconds of noisy audio. Here is how it does that.">
+  <h1 class="up">How <span class="accent">Shazam</span> works</h1>
+  <p class="up d1">From a noisy clip to a song title in seconds.</p>
+</section>
+
+<section data-say="First, the app turns sound into a spectrogram: a picture of which frequencies are loud at each moment.">
+  <h2 class="up">Sound becomes a picture</h2>
+  <svg width="1100" height="300" viewBox="0 0 1100 300" class="in d1">
+    <polyline class="draw" fill="none" stroke="#ffb347" stroke-width="4"
+      points="0,150 60,120 120,190 180,80 240,160 300,100 360,220 420,140 480,60 540,170 600,120 660,200 720,90 780,150 840,110 900,230 960,130 1020,170 1100,150"/>
+  </svg>
+  <p class="up d3">Time runs left to right. Pitch runs bottom to top.</p>
+</section>
+
+<section data-say="It keeps only the loudest peaks, and pairs them up into a fingerprint. A fingerprint is tiny, and survives background noise.">
+  <h2 class="up">Peaks become a fingerprint</h2>
+  <div class="row">
+    <div class="card pop d1">Peak at 2.1s, 440Hz</div>
+    <div class="card pop d2">+</div>
+    <div class="card pop d3">Peak at 2.4s, 880Hz</div>
+    <div class="card pop d4 accent">= one hash</div>
+  </div>
+  <p class="up d5">Thousands of hashes per song. Noise changes a few. Most survive.</p>
+</section>
+
+<section data-say="Finally, those hashes are looked up in a database of every known song. The song whose hashes line up in time is the match.">
+  <h2 class="up">Match against every song</h2>
+  <p class="up d1">Hashes from your clip are looked up in a database of millions of songs.</p>
+  <p class="up d2">The one whose hashes line up <span class="accent">in the same time order</span> wins.</p>
+  <h1 class="pop d4 accent">That's Shazam.</h1>
+</section>
+
+<script>
+  // ponytail: swapping the class restarts CSS animations because the node leaves display:none.
+  // Contract used by build.mjs: go(i) shows scene i, scenes() lists narration + optional data-hold seconds.
+  window.go = (i) => {
+    document.querySelectorAll('section').forEach((s, j) => {
+      if (s.classList.contains('active') && i !== j) { s.classList.add('leaving'); setTimeout(() => s.classList.remove('leaving'), 500); }
+      s.classList.toggle('active', i === j);
+      s.dispatchEvent(new CustomEvent(i === j ? 'enter' : 'leave'));  // hook for canvas/three.js loops
+    });
+  };
+  window.scenes = () => [...document.querySelectorAll('section')].map(s => ({ say: s.dataset.say || '', hold: +(s.dataset.hold || 0) }));
+  go(0);
+</script>
+</body>
+</html>

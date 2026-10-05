@@ -1,0 +1,7 @@
+{
+  "name": "vid-scripts",
+  "private": true,
+  "type": "module",
+  "scripts": { "build": "node build.mjs" },
+  "dependencies": { "playwright": "1.60.0" }
+}

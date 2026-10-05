@@ -33,6 +33,7 @@ export function apiKey() {
 const silence = (secs, out) =>
   sh('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'anullsrc=r=24000:cl=mono', '-t', secs.toFixed(2), out]);
 
+// TTS is xAI because that is what I use. To use another provider, replace this function: it must write an mp3 of `text` to `out`.
 export async function tts(text, out, { voice, dry }) {
   if (dry) return silence(Math.max(2, text.split(/\s+/).length / DRY_WORDS_PER_SEC), out);
   const r = await fetch('https://api.x.ai/v1/tts', {

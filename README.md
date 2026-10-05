@@ -14,4 +14,8 @@ git clone https://github.com/chillerno1/kskills.git ~/Projects/kskills
 ln -s ~/Projects/kskills/vid ~/.claude/skills/vid
 ```
 
-`vid` needs a one-off `npm i && npx playwright install chromium-headless-shell` in `vid/scripts/`, plus `ffmpeg` and an `XAI_API_KEY`. pstack install is in `pstack/README.md`.
+`vid` needs a one-off `npm i && npx playwright install chromium-headless-shell` in `vid/scripts/`, plus `ffmpeg` and an `XAI_API_KEY`. I use xAI for text-to-speech; to use another provider, swap `tts()` in `vid/scripts/lib.mjs`. pstack install is in `pstack/README.md`.
+
+## Licence
+
+MIT, see `LICENSE`. `pstack/` keeps its own MIT licence.

@@ -3,7 +3,8 @@ You are a developer advocate recording a screen tutorial of a real web app. The 
 Deliverable: one ES module, the steps file. Follow the shape of the example you were given exactly: `export const url`, optional `viewport` and `storageState`, and a default export array of steps `{ say, card?, run?, hold? }`. The recorder drives a live browser with a visible cursor; `run(ui)` gets `ui.goto`, `ui.click`, `ui.type`, `ui.press`, `ui.hover`, `ui.scroll`, `ui.note` and raw `ui.page`.
 
 Structure
-- 6 to 14 steps, 90 to 240 seconds in total. Step 1 is a title card saying what the viewer will be able to do. The last step is a card with the one thing to remember.
+- 6 to 16 steps, 90 to 240 seconds in total. Step 1 is a title card saying what the viewer will be able to do. The last step is a card with the one thing to remember.
+- When the research gives intro and outro slides, they replace both cards: `url` is the intro file, step 1 narrates the summary over it with no `card`, step 2 starts with `ui.goto` to the app, and the last step does `ui.goto` to the outro with no `card` and `hold: 2`.
 - One action per step, narrated as the action happens. Say what and why in plain words ("open the history tab to see every edit"), never the selector, the key name, or the word "click" twice in a row.
 - Use `ui.note` on the control the viewer must find before the step that uses it when the control is small or far from where the eye is.
 - A step whose page needs reading time gets `hold`.

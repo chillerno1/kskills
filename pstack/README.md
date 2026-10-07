@@ -279,6 +279,21 @@ type [`/automate-me`](./skills/automate-me/SKILL.md). it mines your recent trans
 
 models are configurable too. type [`/setup-pstack`](./skills/setup-pstack/SKILL.md). it writes `~/.claude/pstack-models.md`, a small file mapping each role (code, judgment, the review panels) to `fable`, `opus`, `sonnet`, `haiku`, or `inherit`. every skill that routes models reads it and falls back to sensible defaults when the file or a line is absent, so you override only what you want. effort isn't in that file; it lives in `agents/poteto-agent.md`. a `.claude/pstack-models.md` in a repo root wins over the user file for that repo.
 
+### claude, grok and codex
+
+pstack runs in claude code, grok cli and codex cli with no switching. [`pstack-models.md`](./pstack-models.md) has one section per cli, and each agent uses the section for the cli it is running in, telling them apart by its spawn tool (`Agent`, `spawn_subagent`, `spawn_agent`). when one provider's quota runs out, open another provider's cli and keep going. link it once:
+
+```bash
+ln -s ~/Projects/kskills/pstack/pstack-models.md ~/.claude/pstack-models.md
+
+# codex reads ~/.codex/skills; grok cli already reads ~/.claude/skills
+for d in ~/Projects/kskills/pstack/skills/*/; do
+  ln -s "${d%/}" ~/.codex/skills/"$(basename "$d")"
+done
+```
+
+edit a section to change that cli's models.
+
 a cursor-era `~/.cursor/rules/pstack-models.mdc` is not read and its model slugs don't carry over. run `/setup-pstack` once to write the claude code file. a rerun keeps any role whose model differs from the default.
 
 ## license

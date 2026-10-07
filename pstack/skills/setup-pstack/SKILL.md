@@ -5,7 +5,7 @@ description: Configure which models pstack uses per role. Detects the models you
 
 # Setup pstack
 
-Write `~/.claude/pstack-models.md`, a plain markdown file that sets pstack's model per role. When the user asks for a per-repo override, write `.claude/pstack-models.md` at the repo root instead. A project file wins over the user file.
+Write `~/.claude/pstack-models.md`, a plain markdown file that sets pstack's model per role. When the user asks for a per-repo override, write `.claude/pstack-models.md` at the repo root instead. A project file wins over the user file. If the target file has `## ` sections (pstack's shipped `pstack-models.md`, usually symlinked), this skill reads and rewrites only the `## Claude Code` section's role lines and leaves the header and the Grok and Codex sections as they are.
 
 Reasoning effort is not part of this file. Claude Code cannot set effort per Agent call. It comes from the agent definition, and `poteto-agent` pins `effort: high` in its frontmatter. To change effort for code work, edit that one line in `agents/poteto-agent.md`. Explorers and investigators that run as `Explore` or `general-purpose` follow the session's effort.
 

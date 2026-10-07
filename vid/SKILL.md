@@ -33,7 +33,10 @@ Needs `ffmpeg` on PATH and `XAI_API_KEY` in the environment.
 
 **tutorial**. How to do one task in a real web app. 90 to 240 seconds. The live app is recorded while the recorder clicks and types with a visible cursor, so every frame is the real UI.
 - Research: do the task yourself once in a browser on the running app (Playwright MCP or any browser tool). Note each page, each control, and the role or text that finds it. The app must be up and the flow re-runnable from the same start state. A logged-in app needs a Playwright storage state file. Hand the user this command to run in their own terminal, log in, and close the window, then set `storageState` to the file: `npx --prefix <skill>/scripts playwright codegen --save-storage=out/<slug>/auth.json <url>`. Never ask for credentials.
-- Paste: `briefs/tutorial.md`, `scripts/example/tutorial.mjs`, your research notes. The agent writes `out/<slug>/tutorial.mjs`.
+- Cut the noise before recording. Seed or reset the start state so the screen shows only the one record the tutorial is about, not leftover test data. When the flow switches users in one browser, check what the app keeps in `localStorage` from the first user (filters, a selected team) and have the step clear those keys, or the second user sees the first user's view.
+- Slides. For a product with a brand, make `out/<slug>/intro.html` (logo, product name, the tutorial's title, one summary line) and `outro.html` (title and up to 4 bullets to remember) from `scripts/slide.html`. Take the logo file and colours from the repo. Screenshot both at the tutorial viewport before handing them on.
+- Something the app sends rather than shows, such as an email, goes in as a local HTML page of the real rendered output. Centre it vertically (`body{display:flex;align-items:center;justify-content:center;min-height:100vh}`) and scale it up so it fills the frame.
+- Paste: `briefs/tutorial.md`, `scripts/example/tutorial.mjs`, your research notes with the slide and page file URLs. The agent writes `out/<slug>/tutorial.mjs`.
 - Build: `node <skill>/scripts/tutorial.mjs out/<slug>/tutorial.mjs` produces `tutorial.mp4`.
 
 **marketing**. A product or feature pitch. 30 to 60 seconds, 5 to 8 scenes, ends on a call to action.

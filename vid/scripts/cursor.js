@@ -57,12 +57,19 @@
         { transform: `${at(20, 20)} scale(1.6)`, opacity: 0 },
       ], { duration: 400, easing: 'ease-out', fill: 'forwards' }).finished.then(() => ring.remove());
     },
-    spot({ x: l, y: t, width: w, height: h }) {
+    // Re-measures the target every frame, so the ring stays on it when the page scrolls or reflows.
+    spot(target) {
       this.unspot();
-      const p = 8, s = el('div', `left:${l - p}px;top:${t - p}px;width:${w + 2 * p}px;height:${h + 2 * p}px;` +
-        'border-radius:10px;box-shadow:0 0 0 3px #ff8a00,0 0 0 200vmax rgba(0,0,0,.55);opacity:0');
+      const p = 8, s = el('div', 'border-radius:10px;box-shadow:0 0 0 3px #ff8a00,0 0 0 200vmax rgba(0,0,0,.55);opacity:0');
       s.dataset.vid = 'spot';
+      const follow = () => {
+        if (!s.isConnected) return;
+        const r = target.getBoundingClientRect();
+        Object.assign(s.style, { left: `${r.x - p}px`, top: `${r.y - p}px`, width: `${r.width + 2 * p}px`, height: `${r.height + 2 * p}px` });
+        requestAnimationFrame(follow);
+      };
       root().insertBefore(s, cursor);
+      follow();
       fade(s, 200);
     },
     unspot() {

@@ -1,5 +1,5 @@
-import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { readFileSync, writeFileSync, mkdirSync, rmSync, renameSync, existsSync } from 'node:fs';
 import path from 'node:path';
 
 export const PAD_SECS = 0.6;
@@ -12,9 +12,10 @@ const ext = /\.[^./]+$/;
 export function parseArgs(argv) {
   const vi = argv.indexOf('--voice');
   return {
-    file: argv.find((a, i) => !a.startsWith('--') && !(vi >= 0 && i === vi + 1)),
+    file: argv.find((a, i) => !a.startsWith('--') && !['--voice', '--speed'].includes(argv[i - 1])),
     voice: vi >= 0 ? argv[vi + 1] : 'liora',
     dry: argv.includes('--dry'),
+    speed: argv.includes('--speed') ? parseFloat(argv[argv.indexOf('--speed') + 1]) : 1,
   };
 }
 
@@ -74,4 +75,29 @@ export function mux(webm, audio, leadInSecs, out) {
     '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-pix_fmt', 'yuv420p', '-r', '30', '-c:a', 'aac', '-shortest', out]);
   rmSync(webm);
   console.log(`done: ${out} (${duration(out).toFixed(1)}s)`);
+}
+
+// Fast-forwards every silence over 3s (an agent working, a page loading) so it plays in about 2s,
+// keeping 0.4s at each edge at normal speed, then speeds the whole video up by `speed`.
+export function tighten(file, speed = 1) {
+  const log = spawnSync('ffmpeg', ['-i', file, '-af', 'silencedetect=n=-45dB:d=3', '-f', 'null', '-']).stderr.toString();
+  const starts = [...log.matchAll(/silence_start: ([\d.]+)/g)].map(m => +m[1]);
+  const ends = [...log.matchAll(/silence_end: ([\d.]+)/g)].map(m => +m[1]);
+  const total = duration(file), edge = 0.4, segs = [];
+  let t = 0;
+  starts.forEach((s, i) => {
+    const a = s + edge, b = (ends[i] ?? total) - edge;
+    segs.push([t, a, 1], [a, b, Math.max(4, (b - a) / 2)]);
+    t = b;
+  });
+  segs.push([t, total, 1]);
+  const graph = segs.map(([a, b, k], i) => {
+    const r = k * speed, at = `${a.toFixed(3)}:${b.toFixed(3)}`;
+    return `[0:v]trim=${at},setpts=(PTS-STARTPTS)/${r}[v${i}];[0:a]atrim=${at},asetpts=PTS-STARTPTS,atempo=${r}[a${i}];`;
+  }).join('') + segs.map((_, i) => `[v${i}][a${i}]`).join('') + `concat=n=${segs.length}:v=1:a=1[v][a]`;
+  const tmp = file.replace(ext, '.tight.mp4');
+  sh('ffmpeg', ['-y', '-v', 'error', '-i', file, '-filter_complex', graph, '-map', '[v]', '-map', '[a]',
+    '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-pix_fmt', 'yuv420p', '-r', '30', '-c:a', 'aac', tmp]);
+  renameSync(tmp, file);
+  console.log(`tightened: ${starts.length} gaps fast-forwarded, ${speed}x, ${total.toFixed(1)}s -> ${duration(file).toFixed(1)}s`);
 }

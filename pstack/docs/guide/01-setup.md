@@ -24,7 +24,7 @@ Run:
 
 Out of the box, all code work runs on `opus` at high effort: feature, refactoring, bug fix, perf, hillclimb, swarm workers, and the hardest tasks all go through the `poteto-agent` subagent. Judgment and prose use `opus` too, and every review panel mixes `fable`, `opus`, and `sonnet`. Claude Code can't set effort per subagent call, so it comes from the `effort: high` line in [`agents/poteto-agent.md`](../../agents/poteto-agent.md). Edit that one line to change it.
 
-You only override what you care about. A role with no line in the file keeps the skill's default. To restore a default, delete that role's line. A rerun of `/setup-pstack` keeps any role whose model differs from the default. A Cursor-era `~/.cursor/rules/pstack-models.mdc` is not read, so run `/setup-pstack` once even if you used pstack in Cursor.
+You only override what you care about. A role with no line in the file keeps the skill's default. To restore a default, delete that role's line. A rerun of `/setup-pstack` keeps any role whose model differs from the default. A Cursor-era `~/.cursor/rules/pstack-models.mdc` is not read, so run `/setup-pstack` once even if you used pstack in Cursor. When a default changes, a file written before the change still pins the old default, so delete those role lines, or delete the file, then run `/setup-pstack` again.
 
 You might be wondering how to keep a role on whatever model you picked with `/model`. Set it to `inherit` and pstack omits the subagent `model` parameter, so the subagent inherits your session's model. For a panel role the value is a list, and one subagent runs per entry, so the list length sets the panel size. Setup also configures `swarm workers`, the default model for every `/swarm` worker unless a race names a model for each arm.
 
@@ -32,9 +32,20 @@ You might be wondering how to keep a role on whatever model you picked with `/mo
 
 At the end of setup, `/setup-pstack` looks for a way to prove app behavior in your project, either a `verify-*` skill or an existing harness. If it finds neither, it offers once to generate one with [`/create-verification-skill`](../../skills/create-verification-skill/SKILL.md).
 
-Say yes and it writes `.claude/skills/verify-<app>/`, a project-local skill that teaches agents to drive your app the way a user does. It proves the skill works once before handing it over. Say no and setup moves on. You can run `/create-verification-skill` yourself any time. [Verify and ship](./06-verify-and-ship.md#create-a-project-verification-skill) covers when it earns its place.
+Say yes and it writes `.claude/skills/verify-<app>/`, a project-local skill that teaches agents to drive your app the way a user does. It proves the skill works once before handing it over. Say no and setup moves on. You can run `/create-verification-skill` yourself any time. [Verify and ship](./06-verify-and-ship.md#create-a-project-verification-skill) covers it in depth.
+
+If you're new to pstack, say yes. An agent that can check its own work keeps going until the check passes. An agent that can't hands every result back to you to check by hand. Of everything in this guide, the verification skill pays off the most.
 
 Skills read the model file each time they route a subagent, so your choices apply from the next skill run.
+
+## Keep the cost in check
+
+pstack spends extra tokens on subagents and review panels. That's the price of the rigor. To spend fewer:
+
+- Rerun `/setup-pstack` and pick cheaper models, such as `sonnet` or `haiku`, for roles that don't need `opus`. A strong model in the main chat with cheaper, faster models in the review panels is a good split.
+- Set a role to `inherit` so it runs on the session's own model.
+- Shorten a panel list. Each entry runs one subagent.
+- Save `/poteto-mode` for work that needs rigor. A small, obvious edit doesn't.
 
 ## Run your first task
 

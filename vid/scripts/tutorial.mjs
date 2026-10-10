@@ -2,11 +2,11 @@
 import { chromium } from 'playwright';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { PAD_SECS, parseArgs, workDir, voice, concat, mp4For, mux } from './lib.mjs';
+import { PAD_SECS, parseArgs, workDir, voice, concat, mp4For, mux, tighten } from './lib.mjs';
 
 const fail = msg => { console.error(msg); process.exit(1); };
 const opts = parseArgs(process.argv.slice(2));
-if (!opts.file) fail('Usage: node tutorial.mjs path/to/tutorial.mjs [--voice liora] [--dry]');
+if (!opts.file) fail('Usage: node tutorial.mjs path/to/tutorial.mjs [--voice liora] [--speed 1.25] [--dry]');
 const file = path.resolve(opts.file);
 const { url, viewport = { width: 1280, height: 720 }, storageState, default: steps } = await import(pathToFileURL(file));
 if (!url) fail(`${file}: missing export const url = 'https://...'`);
@@ -70,8 +70,8 @@ const ui = {
     if (!byPixels) await point(t);
   },
   async note(t) {
-    const { box } = await point(t);
-    await page.evaluate(b => __vid.spot(b), box);
+    const { loc } = await point(t);
+    await loc.evaluate(el => __vid.spot(el));
   },
 };
 
@@ -103,3 +103,4 @@ await browser.close();
 
 const { audio } = concat(work, elapsed.map(e => `apad=whole_dur=${e.toFixed(3)}`));
 mux(webm, audio, leadInSecs, mp4For(file));
+tighten(mp4For(file), opts.speed);

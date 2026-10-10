@@ -54,7 +54,7 @@ two steps:
 1. run [`/setup-pstack`](./skills/setup-pstack/SKILL.md) and choose which models you want.
 2. use [`/poteto-mode`](./skills/poteto-mode/SKILL.md) whenever you're doing anything that requires rigor.
 
-new here? the [pstack guide](./docs/guide/README.md) walks you through a first real task, from setup and prompting through verification and overnight runs.
+new here? the [pstack guide](./docs/guide/README.md) walks you through a first real task, from setup and prompting through verification and overnight runs. stuck, or unsure which skill fits? ask [`/poteto-help`](./skills/poteto-help/SKILL.md).
 
 that's it. the other skills are situational; the mode skill uses them for you as needed. out of the box all code work (feature, refactoring, bug fix, perf, hillclimb, swarm workers, the hardest changes) runs on `opus` at high effort through the `poteto-agent` subagent, judgment and prose use `opus` too, and the review panels mix fable / opus / sonnet. effort is set once, in the `effort: high` line of [`agents/poteto-agent.md`](./agents/poteto-agent.md); edit that line to change it. [`/setup-pstack`](./skills/setup-pstack/SKILL.md) changes the model choices.
 
@@ -139,6 +139,7 @@ the full rules and playbooks live in [`skills/poteto-mode/SKILL.md`](./skills/po
 | skill | use it when |
 |---|---|
 | [`/poteto-mode`](./skills/poteto-mode/SKILL.md) | default entry point for any non-trivial task. |
+| [`/poteto-help`](./skills/poteto-help/SKILL.md) | you're new to pstack, or unsure which skill, playbook, or principle fits. finds out what you're trying to do, answers that part, and hands you a prompt to type. runs only when you type `/poteto-help`. |
 | [`/how`](./skills/how/SKILL.md) | you want a walkthrough of how a subsystem works. |
 | [`/why`](./skills/why/SKILL.md) | you want to know why something was built this way. discovers available MCPs at run time and queries each evidence category in parallel (source control, issue tracker, long-form docs, real-time chat, infra observability, error tracking, analytics warehouse). |
 | [`/recall`](./skills/recall/SKILL.md) | you're starting or resuming work and want your recent context on a topic rebuilt from your own chat history and the shared record, handed back as a tight current-state brief. |
@@ -146,7 +147,7 @@ the full rules and playbooks live in [`skills/poteto-mode/SKILL.md`](./skills/po
 | [`/architect`](./skills/architect/SKILL.md) | you're about to write code that crosses a function boundary and want the caller's usage, types, and module shape settled first. |
 | [`/arena`](./skills/arena/SKILL.md) | you want N parallel attempts at the same thing, then to grab the best parts of each. |
 | [`/swarm`](./skills/swarm/SKILL.md) | you want N parallel workers across different slices or races, then one aggregated report. |
-| [`/interrogate`](./skills/interrogate/SKILL.md) | you have a diff and want several different models to try to break it, including a strict code-quality lens. |
+| [`/interrogate`](./skills/interrogate/SKILL.md) | you have a diff and want different models to try to break it, including a strict code-quality lens. |
 | [`/automate-me`](./skills/automate-me/SKILL.md) | you want your own `-mode` skill, drafted from how you've actually worked. |
 | [`/make-bot-ui`](./skills/make-bot-ui/SKILL.md) | you want a page or dashboard whose buttons fire a Claude Code routine through its API trigger, including the token handoff and Tailscale. |
 | [`/setup-pstack`](./skills/setup-pstack/SKILL.md) | you want to pick which models pstack uses per role. writes `~/.claude/pstack-models.md`. |
@@ -211,6 +212,7 @@ reflect:           /reflect that took too long. capture what we learned so the n
 correct:           /correct
 show-me-your-work: /show-me-your-work keep a decision trail i can review when i'm back.
 automate-me:       /automate-me
+help:              /poteto-help which skill should i use to review this branch?
 ```
 
 </details>

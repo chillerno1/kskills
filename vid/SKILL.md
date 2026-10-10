@@ -37,7 +37,7 @@ Needs `ffmpeg` on PATH and `XAI_API_KEY` in the environment.
 - Slides. For a product with a brand, make `out/<slug>/intro.html` (logo, product name, the tutorial's title, one summary line) and `outro.html` (title and up to 4 bullets to remember) from `scripts/slide.html`. Take the logo file and colours from the repo. Screenshot both at the tutorial viewport before handing them on.
 - Something the app sends rather than shows, such as an email, goes in as a local HTML page of the real rendered output. Centre it vertically (`body{display:flex;align-items:center;justify-content:center;min-height:100vh}`) and scale it up so it fills the frame.
 - Paste: `briefs/tutorial.md`, `scripts/example/tutorial.mjs`, your research notes with the slide and page file URLs. The agent writes `out/<slug>/tutorial.mjs`.
-- Build: `node <skill>/scripts/tutorial.mjs out/<slug>/tutorial.mjs` produces `tutorial.mp4`.
+- Build: `node <skill>/scripts/tutorial.mjs out/<slug>/tutorial.mjs` produces `tutorial.mp4`. Silences over 3s (an agent working, a page loading) are fast-forwarded to about 2s; add `--speed 1.25` to speed the whole video up too.
 
 **marketing**. A product or feature pitch. 30 to 60 seconds, 5 to 8 scenes, ends on a call to action.
 - Research: the product's own claims from its README, landing page, or changelog. Real numbers only. Brand colours from the repo's design tokens when it has them.

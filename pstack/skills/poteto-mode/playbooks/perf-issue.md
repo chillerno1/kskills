@@ -14,7 +14,7 @@
    7. Do it cheaper.
 
    When an earlier mantra meets the target, stop.
-3. Plan the fix from the trace. If it crosses a function boundary, `architect` first. Delegate implementation to a `poteto-agent` subagent (`subagent_type: "poteto-agent"`, which runs `opus` at effort `high`) using your configured perf-issue model (the `perf-issue` line in `~/.claude/pstack-models.md`, default `opus`). Review the diff. Capture a post-fix trace.
+3. Plan the fix from the trace. If it crosses a function boundary, `architect` first. Delegate implementation to a `poteto-agent` subagent (`subagent_type: "poteto-agent"`, which runs `opus` at effort `high`) using your configured perf-issue model (the `perf-issue` line in `~/.claude/pstack-models.md`, default `opus`). Pick each subagent's reasoning level and fast or standard speed for the job, per the Subagents section. Review the diff. Capture a post-fix trace.
    Apply the **sequence-verifiable-units** principle skill, verifying each attempt before trying the next.
 4. Parse and compare the artifacts (JSON to sqlite, diff). "Inconclusive" or wrong-surface is not a pass. Flag it.
 5. Cite the measurement in the PR.

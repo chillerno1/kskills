@@ -15,8 +15,8 @@ const scenes = await page0.evaluate(() => window.scenes());
 await page0.close();
 if (!scenes.length) throw new Error('No <section data-say> scenes found');
 
-await voice(scenes.map(s => s.say), work, opts);
-const { audio, lens } = concat(work, scenes.map(s => `apad=pad_dur=${PAD_SECS + s.hold}`));
+const mp3s = await voice(scenes.map(s => s.say), work, opts);
+const { audio, lens } = concat(mp3s, work, scenes.map(s => `apad=pad_dur=${PAD_SECS + s.hold}`));
 lens.forEach((len, i) => console.log(`scene ${i + 1}/${scenes.length}: ${len.toFixed(1)}s`));
 
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 }, recordVideo: { dir: work, size: { width: 1280, height: 720 } } });
@@ -33,4 +33,4 @@ const webm = await page.video().path();
 await ctx.close();
 await browser.close();
 
-mux(webm, audio, leadInSecs, mp4For(deck));
+mux(webm, audio, leadInSecs, mp4For(deck, opts.dry));

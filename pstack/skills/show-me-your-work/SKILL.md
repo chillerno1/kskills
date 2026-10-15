@@ -64,7 +64,7 @@ Correct the log, not the story. The audit never edits or removes a row, even an 
 
 ## Cross-model review of the trail
 
-Before handing back, spawn a subagent on a different model from the one that did the work. Every Agent seat is Claude, so a different model family is not available: pick another Claude model (`fable` if the work ran on `opus`, otherwise `opus`) and give it a skeptical reviewer persona. Optional extra: if `codex` is on PATH, a `codex exec` run via Bash adds a non-Claude reviewer. Self-review is not a substitute. The subagent reads the audit trail and the run's transcript, then flags what the user should pay attention to. Not a redo of the work, a scan for what's suboptimal or risky.
+Before handing back, spawn a subagent on a different model from the one that did the work. Every Agent seat is Claude, so a different model family is not available: pick another Claude model (`fable` if the work ran on `opus`, otherwise `opus`) and give it a skeptical reviewer persona. Optional extra: if `codex` is on PATH, a `codex exec` run via Bash adds a non-Claude reviewer. Self-review is not a substitute. The subagent reads the audit trail and the run's transcript, then flags what the user should pay attention to. Not a redo of the work, a scan for what's suboptimal or risky. Pick each subagent's reasoning level and fast or standard speed for the job, per the Subagents section of the **poteto-mode** skill.
 
 - Decisions logged with weak or absent evidence.
 - Verification steps skipped or claimed without proof in the transcript.

@@ -3,7 +3,7 @@ export const url = 'https://en.wikipedia.org';
 export default [
   { say: 'Every Wikipedia article keeps a record of everyone who changed it. Here is how to see it.', card: 'Who edited this article?' },
   {
-    say: 'Search for the article you care about. We will look up Playwright, the browser testing tool.',
+    say: 'Search for the article you care about.',
     run: async ui => { await ui.type('input[name=search]', 'Playwright (software)'); await ui.press('Enter'); },
   },
   {

@@ -1,4 +1,5 @@
 import { execFileSync, spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, mkdirSync, rmSync, renameSync, existsSync } from 'node:fs';
 import path from 'node:path';
 
@@ -46,20 +47,21 @@ export async function tts(text, out, { voice, dry }) {
   writeFileSync(out, Buffer.from(await r.arrayBuffer()));
 }
 
+// Clips are named by voice and text, so an edited, reordered or re-voiced script never reuses a stale clip.
 export async function voice(texts, work, opts) {
-  const lens = [];
-  for (const [i, text] of texts.entries()) {
-    const mp3 = path.join(work, `s${i}.mp3`);
+  const mp3s = [];
+  for (const text of texts) {
+    const mp3 = path.join(work, `${createHash('sha1').update(`${opts.voice}\n${text}`).digest('hex').slice(0, 12)}.mp3`);
     if (!existsSync(mp3)) text.trim() ? await tts(text, mp3, opts) : silence(0.5, mp3);
-    lens.push(duration(mp3));
+    mp3s.push(mp3);
   }
-  return lens;
+  return mp3s;
 }
 
-export function concat(work, filters) {
+export function concat(mp3s, work, filters) {
   const lens = filters.map((af, i) => {
     const wav = path.join(work, `s${i}.wav`);
-    sh('ffmpeg', ['-y', '-v', 'error', '-i', path.join(work, `s${i}.mp3`), '-af', af, wav]);
+    sh('ffmpeg', ['-y', '-v', 'error', '-i', mp3s[i], '-af', af, wav]);
     return duration(wav);
   });
   writeFileSync(path.join(work, 'list.txt'), filters.map((_, i) => `file 's${i}.wav'`).join('\n'));
@@ -68,7 +70,7 @@ export function concat(work, filters) {
   return { audio, lens };
 }
 
-export const mp4For = file => file.replace(ext, '.mp4');
+export const mp4For = (file, dry) => file.replace(ext, dry ? '.dry.mp4' : '.mp4');
 
 export function mux(webm, audio, leadInSecs, out) {
   sh('ffmpeg', ['-y', '-v', 'error', '-ss', leadInSecs.toFixed(3), '-i', webm, '-i', audio,

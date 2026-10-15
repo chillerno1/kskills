@@ -8,13 +8,9 @@ disable-model-invocation: true
 
 Mine the current conversation for durable learnings, then route them into skill edits.
 
-## When to invoke
-
 Invoke when the user says "reflect" or "/reflect". Skip when the conversation is trivial, off-topic, or already covered by an existing skill the parent followed correctly. One-offs are not learnings.
 
-## Process
-
-### 1. Locate the active transcript
+## 1. Locate the active transcript
 
 The parent finds its own transcript file before fanning out. Claude Code writes each session to `~/.claude/projects/<slug>/<session-id>.jsonl`, where `<slug>` is the launch directory with every non-alphanumeric character turned into `-`, and exports the session id as `$CLAUDE_CODE_SESSION_ID`.
 
@@ -30,11 +26,11 @@ Layout: the main transcript is `<session-id>.jsonl`. Subagent transcripts sit in
 
 If `$CLAUDE_CODE_SESSION_ID` is unset, take the newest `*.jsonl` in this workspace's slug directory (`ls -t`) and verify it. The opening prompt is not on line 1, since bookkeeping lines come first. Find the first `type: "user"` line without `isMeta` whose `message.content` is a string (or a list holding a `text` block), and check it matches the conversation's opening user prompt. Tool results also arrive as `type: "user"` lines with `tool_result` blocks, so skip those. A session opened with a slash command starts with `<command-...>` wrapper text. If no path resolves, write a tight digest of the session and pass that instead.
 
-### 2. Spawn three reviewers in parallel
+## 2. Spawn three reviewers in parallel
 
 One message, three Agent tool calls, `subagent_type: general-purpose`, with `model` set as below. Reviewers need MCP access for context lookups (tickets, chat threads, observability traces referenced in the transcript).
 
-Each reviewer and the synthesizer name a role line in `pstack-models.md` and a default. Read `.claude/pstack-models.md` in the repo root if it exists, else `~/.claude/pstack-models.md`; a missing file or line uses the default. Set the Agent tool's `model` to that line's value (`opus`, `fable`, `sonnet`, or `haiku`), or omit `model` when the value is `inherit`.
+Each reviewer and the synthesizer name a role line in `pstack-models.md` and a default. Read `.claude/pstack-models.md` in the repo root if it exists, else `~/.claude/pstack-models.md`; a missing file or line uses the default. Set the Agent tool's `model` to that line's value (`opus`, `fable`, `sonnet`, or `haiku`), or omit `model` when the value is `inherit`. Pick each subagent's reasoning level and fast or standard speed for the job, per the Subagents section of the **poteto-mode** skill.
 
 | Lens | Role line | Default `model` | Prompt template |
 |---|---|---|---|
@@ -46,30 +42,30 @@ The tooling seat gets its divergence from a different Claude model plus a distin
 
 Pass each template verbatim, substituting the transcript path or digest where marked. Reviewers return findings in the Agent response body.
 
-### 3. Synthesize
+## 3. Synthesize
 
 One Agent call, `subagent_type: general-purpose`, with `model` from the `reflect judgment, divergent, synthesizer` line (default `opus`). The synthesizer's quality check includes spot-verifying citations, which can require MCP access. Use `references/synthesizer.md` verbatim, with each reviewer's full output inlined where marked. The synthesizer returns a structured Accepted / Rejected / Backlog list.
 
-### 4. Structural enforcement check
+## 4. Structural enforcement check
 
-Sanity-check the synthesizer's Accepted list. For any item that would be enforced more reliably by a lint rule, script, metadata flag, or runtime check, move it from Accepted to Backlog. See the **encode-lessons-in-structure** principle skill.
+Move any Accepted item that a lint rule, script, metadata flag, or runtime check would enforce more reliably to Backlog. See the **encode-lessons-in-structure** principle skill.
 
-### 5. Apply
+## 5. Apply
 
-Before applying any Accepted edit, present the synthesizer's full Accepted/Rejected/Backlog output to the user and wait for explicit approval. The user picks which subset to apply and may redirect routings. Skill changes affect every future agent in the org. Do not auto-apply.
+Present the synthesizer's full Accepted / Rejected / Backlog output and wait for explicit approval before applying any Accepted edit. The user picks the subset and may redirect routings. Skill changes affect every future agent in the org. Do not auto-apply.
 
-Backlog items file to whatever devex / backlog tracker your team uses automatically. Only the Accepted list waits for approval.
+File each Backlog item to your team's devex or backlog tracker without waiting. Only the Accepted list waits for approval.
 
-For each approved Accepted item, follow the Routing field exactly:
+Follow each approved row's Routing exactly:
 
 - Trivial existing-skill edit (a one-line bullet, a tightened sentence, a stale fact corrected): parent does directly.
 - Substantive existing-skill edit (a new section, a new pattern table, more than ~10 lines): hand to Anthropic's `skill-creator` skill (install it if missing) and run its draft / test / iterate loop.
 - `tune description: <skill path>` (the skill exists but didn't trigger when it should have): hand to `skill-creator` and run its description-optimization loop.
 - `new skill via skill-creator: <kebab-name>`: hand creation to `skill-creator`. Do not invent the shape ad hoc.
 
-If your environment ships a SKILL.md validator, run it on every touched skill before declaring done. Skip this step if it doesn't.
+If your environment ships a SKILL.md validator, run it on every touched skill before declaring done.
 
-### 6. Summarize for the user
+## 6. Summarize for the user
 
 Short list, no preamble:
 

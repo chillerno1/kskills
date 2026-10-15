@@ -1,20 +1,23 @@
 #!/usr/bin/env node
 import { chromium } from 'playwright';
+import { execSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { PAD_SECS, parseArgs, workDir, voice, concat, mp4For, mux, tighten } from './lib.mjs';
+import { PAD_SECS, parseArgs, workDir, voice, concat, duration, mp4For, mux, tighten } from './lib.mjs';
 
 const fail = msg => { console.error(msg); process.exit(1); };
 const opts = parseArgs(process.argv.slice(2));
 if (!opts.file) fail('Usage: node tutorial.mjs path/to/tutorial.mjs [--voice liora] [--speed 1.25] [--dry]');
 const file = path.resolve(opts.file);
-const { url, viewport = { width: 1280, height: 720 }, storageState, default: steps } = await import(pathToFileURL(file));
+const { url, viewport = { width: 1280, height: 720 }, storageState, reset, default: steps } = await import(pathToFileURL(file));
 if (!url) fail(`${file}: missing export const url = 'https://...'`);
 if (!Array.isArray(steps) || !steps.length) fail(`${file}: no steps, export default [{ say, card?, run?, hold? }, ...]`);
 steps.forEach((s, i) => s?.say || s?.card || s?.run || fail(`${file}: step ${i + 1} has none of say, card, run`));
 
 const work = workDir(file, opts.dry);
-const lens = await voice(steps.map(s => s.say ?? ''), work, opts);
+const mp3s = await voice(steps.map(s => s.say ?? ''), work, opts);
+const lens = mp3s.map(duration);
+if (reset) execSync(reset, { stdio: 'inherit', cwd: path.dirname(file) });
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({
@@ -25,11 +28,12 @@ const ctx = await browser.newContext({
 await ctx.addInitScript({ path: fileURLToPath(new URL('cursor.js', import.meta.url)) });
 const tStart = Date.now();
 const page = await ctx.newPage();
+page.setDefaultNavigationTimeout(90_000); // a cold dev server's first load can outlast 30s
 await page.goto(url);
 
 const wait = ms => page.waitForTimeout(ms);
 const firstVisible = t => (typeof t === 'string' ? page.locator(t) : t).filter({ visible: true }).first();
-async function point(target) {
+async function point(target, at = b => [b.x + b.width / 2, b.y + b.height / 2]) {
   const loc = firstVisible(target);
   await loc.waitFor();
   let box = await loc.boundingBox();
@@ -39,7 +43,7 @@ async function point(target) {
     await wait(700);
     box = await loc.boundingBox();
   }
-  await page.evaluate(([x, y]) => __vid.moveTo(x, y, 500), [box.x + box.width / 2, box.y + box.height / 2]);
+  await page.evaluate(([x, y]) => __vid.moveTo(x, y, 500), at(box));
   await wait(150);
   return { loc, box };
 }
@@ -48,6 +52,7 @@ const ui = {
   page,
   goto: u => page.goto(u, { waitUntil: 'domcontentloaded' }),
   async click(t) {
+    await ui.unspot();
     const { loc } = await point(t);
     await page.evaluate(() => __vid.click());
     await loc.click();
@@ -69,8 +74,11 @@ const ui = {
     await wait(800);
     if (!byPixels) await point(t);
   },
+  unspot: () => page.evaluate(() => __vid.unspot()).catch(() => {}),
   async note(t) {
-    const { loc } = await point(t);
+    // Parks the cursor just under the spotlight so it doesn't cover what the narration names.
+    const below = b => [b.x + b.width / 2, Math.min(b.y + b.height + 18, page.viewportSize().height - 12)];
+    const { loc } = await point(t, below);
     await loc.evaluate(el => __vid.spot(el));
   },
 };
@@ -101,6 +109,6 @@ const webm = await page.video().path();
 await ctx.close();
 await browser.close();
 
-const { audio } = concat(work, elapsed.map(e => `apad=whole_dur=${e.toFixed(3)}`));
-mux(webm, audio, leadInSecs, mp4For(file));
-tighten(mp4For(file), opts.speed);
+const { audio } = concat(mp3s, work, elapsed.map(e => `apad=whole_dur=${e.toFixed(3)}`));
+mux(webm, audio, leadInSecs, mp4For(file, opts.dry));
+if (!opts.dry) tighten(mp4For(file, opts.dry), opts.speed); // dry audio is all silence
